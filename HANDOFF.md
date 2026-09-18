@@ -2,6 +2,36 @@
 
 Status handoff for the next agent working on FPS1. Read [FEATURES.md](FEATURES.md) first — this file only covers where the project has **deviated** from that spec, plus current bugs/assumptions/verification status. FEATURES.md has not been updated to reflect these deviations; treat this file as the source of truth for scope until it is.
 
+## Done: start-screen overlay rework
+
+`#overlay` now shows a title ("AGENTIC FPS"), a control list (including Shift-to-sprint, flagged to and kept per the user), and a "Click to start" CTA — markup/CSS only in [index.html](index.html#L101-L149), no JS changes, click-to-lock handler unaffected. Verified via headless Playwright: overlay renders with correct content, no console errors, click still reaches `player.js`'s pointer-lock request.
+
+## Next task: dummy wander movement (with collision) + shot tracer beam
+
+Two feature requests from the user, not yet implemented:
+
+1. **Dummy movement.** Dummies currently never move — `js/dummy.js`'s `_updateLook()` only rotates `this.facingYaw` in place during guard-scan; `this.position` is a static `THREE.Vector3` set once at spawn/respawn, with no physics body of its own (unlike the player, which has a cannon-es body). User wants dummies to wander/idle-move around randomly (not just rotate in place), and this movement **must have collision** — can't walk through cover crates (`level._buildCover` boxes), parapets, or off a roof edge. Bigger change than it sounds: either (a) give each dummy a cannon-es body and route movement through physics like the player, or (b) do manual checks against `level.obstacles` (currently only used for spawn-point validation, not live movement) each step. Also needs bounding to one of the three floor areas (`MAIN_ROOF`/`HVAC_DECK`/`CRANE_DECK`) so dummies don't wander onto a ramp/bridge and fall. Flag for the next session: pick an approach and confirm scope (wander radius, speed, whether wandering pauses during guard-scan/firing) before implementing rather than guessing.
+
+2. **Shot tracer beam.** When a dummy fires (`_updateFire()` in `js/dummy.js`), it currently only calls `player.takeDamage()` and `audio.playGunshot()` — no visual feedback for the shot itself. User wants a beam shown when dummies shoot (e.g. a `THREE.Line`/thin cylinder from the dummy's gun to the player, faded/removed after a short duration). Note: the player's own weapon (`js/weapons.js` `fire()`) also has no shot tracer currently — only a hitscan raycast + crosshair hit-flash (`#crosshair.hit` in `index.html`) — so worth asking the user whether the beam is dummy-only or should apply to the player's shots too, rather than assuming.
+
+## Pending (blocked on user action): host on Vercel
+
+The project is a zero-build static site — `index.html` + `js/*.js`, with three.js/cannon-es loaded from CDN via the `<script type="importmap">` in `index.html`. No `package.json`, no bundler, nothing to build. `server.js` (a bare Node `http` server on port 8000, run via `node server.js`) is local-dev-only — Vercel won't use it; leave it as-is.
+
+User-confirmed setup decisions (2026-09-18, asked via AskUserQuestion — do not re-ask):
+- **Deploy method:** connect the GitHub repo (`benjuliann/agentic-fps`, already the `origin` remote) to a Vercel project via the dashboard/GitHub App, so pushes to `main` auto-deploy. Not a one-off CLI deploy.
+- **Domain:** default `*.vercel.app` subdomain. No custom domain, no DNS work needed.
+- **Project name:** `agentic-fps` (renamed from `vibe-fps` on GitHub after this decision was made — local `origin` remote still points at the old `vibe-fps.git` URL; GitHub's redirect covers it for now but the remote should be updated to match).
+
+Steps that require the user (ask them to do these — the agent cannot):
+- Log into Vercel (GitHub OAuth is simplest, since the repo is already on GitHub) and authorize the Vercel GitHub App for `benjuliann/agentic-fps`.
+- During "Import Project," confirm the Framework Preset is "Other" (or Build Command / Output Directory left blank) — there's nothing to build. Vercel should auto-detect this given the absence of `package.json`, but verify rather than assume.
+
+Verification once deployed:
+- Load the assigned `*.vercel.app` URL, check for console errors — the CDN imports (three.js, cannon-es from unpkg) need to resolve over the public internet, not just localhost.
+- Re-run FEATURES.md's checklist items 2 and 9 (pointer lock engages, `AudioContext` unlocks) on the live URL — both depend on a user gesture and are worth re-confirming under https rather than assuming local-http behavior carries over.
+- Confirm `js/*.js` files are served with a correct JS MIME type (Vercel handles this correctly by default; `server.js`'s local dev server only special-cases `.html`/`.js` and falls back to `application/octet-stream` for anything else, so this isn't a given on every static host).
+
 ## Scope deviations from FEATURES.md
 
 FEATURES.md describes a single box-room arena with static, non-attacking dummies and flat-color-only materials. Actual implementation:

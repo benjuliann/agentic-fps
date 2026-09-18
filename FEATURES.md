@@ -1,4 +1,4 @@
-# FPS1 — Feature Spec
+# Agentic FPS — Feature Spec
 
 Spec for a browser-based single-player FPS prototype using three.js. Intended to be implemented file-by-file by a coding agent.
 
@@ -7,6 +7,7 @@ Spec for a browser-based single-player FPS prototype using three.js. Intended to
 **In scope:** movement, shooting, one test map, HUD, shootable dummy targets with health bars, sound effects (gunshot, footsteps, jump). This is an FPS core, not a Roblox-style platform.
 
 **Explicitly out of scope** (do not build unless asked):
+
 - Multiplayer/networking
 - Accounts, avatars, marketplace
 - In-browser UGC scripting engine
@@ -38,30 +39,36 @@ js/
 ```
 
 ### `index.html`
+
 - Import map for `three` and `cannon-es` from CDN.
 - Empty `<body>` — three.js appends its own `<canvas>`.
 - HUD DOM elements the game will control: health readout, ammo readout, crosshair, "click to play" overlay (needed for Pointer Lock API, which requires a user gesture).
 - `<script type="module" src="js/main.js">`.
 
 ### `js/main.js`
+
 - Entry point. Owns: `THREE.Scene`, `THREE.PerspectiveCamera`, `THREE.WebGLRenderer`, the animation loop (`requestAnimationFrame`).
 - Instantiates `Level`, `Player`, `Weapons`, `HUD`, one or more `Dummy` targets, the audio wrapper, and the physics world.
 - Each frame: step physics → update player → update weapons → update dummies (health bar sprites face camera) → render.
 
 ### `js/physics.js`
+
 - Wraps a `cannon-es` `World` (gravity, fixed timestep step function).
 - Exposes: add-body helper, step function called from the main loop.
 
 ### `js/level.js`
+
 - Builds the test arena: floor + four walls as `THREE.Mesh` + matching static `cannon-es` bodies.
 - Defines one spawn point (position + facing).
 
 ### `js/player.js`
+
 - Pointer Lock controls for mouselook (yaw/pitch on the camera).
 - WASD movement + jump, implemented as forces/velocity on a `cannon-es` capsule (or cylinder) body.
 - Camera position each frame follows the physics body.
 
 ### `js/weapons.js`
+
 - Fire on mouse click (subject to pointer lock being active).
 - Hitscan: raycast from camera center against level meshes and dummy meshes.
 - On dummy hit: apply damage via `dummy.js`, play gunshot + hit-impact sound via `audio.js`.
@@ -69,17 +76,20 @@ js/
 - Emits hit/fire events for `hud.js` to react to (no direct DOM access here).
 
 ### `js/dummy.js`
+
 - Defines a `Dummy` target: primitive mesh body, fixed spawn position, HP value.
 - Floating health-bar sprite above the mesh (canvas texture, redrawn on damage).
 - `takeDamage(amount)` — reduces HP, updates health bar, triggers a reset/respawn (or removal) at 0 HP.
 - Does not move or attack — a static target, not an AI enemy.
 
 ### `js/audio.js`
+
 - Wraps the Web Audio API `AudioContext`.
 - Exposes play functions for: gunshot, footstep, jump, dummy-hit — each synthesized (oscillator/noise burst), no external files.
 - Footstep sound triggers on a timer while `player.js` reports movement; jump/gunshot/hit trigger once per event.
 
 ### `js/hud.js`
+
 - Owns all DOM updates: health, ammo, crosshair state, click-to-play overlay show/hide.
 - Reads state from `player.js` / `weapons.js`; does not own game logic.
 - Does not manage dummy health bars — those are in-world sprites owned by `dummy.js`, not DOM/HUD elements.
