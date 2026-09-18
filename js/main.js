@@ -6,6 +6,7 @@ import { Weapons } from './weapons.js';
 import { HUD } from './hud.js';
 import { Dummy } from './dummy.js';
 import { Audio } from './audio.js';
+import { TracerManager } from './tracer.js';
 
 const FOOTSTEP_INTERVAL = 0.35;
 const MATCH_DURATION = 90;
@@ -14,6 +15,9 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
+// Added to the scene graph so weapons.js's camera-anchored viewmodel gun
+// (a child of the camera) actually gets traversed and rendered.
+scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -32,16 +36,17 @@ const player = new Player(camera, renderer.domElement, physics, level.spawnPoint
 player.yaw = level.spawnYaw;
 
 const audio = new Audio();
+const tracers = new TracerManager(scene);
 
 // Placed on the HVAC/crane decks and the open roof, well away from the
 // spawn point so the player isn't shot immediately on spawn/respawn.
 const dummies = [
-  new Dummy(scene, new THREE.Vector3(-20, 3.2, 10)),
-  new Dummy(scene, new THREE.Vector3(26, 4, -5)),
-  new Dummy(scene, new THREE.Vector3(0, 1, -20)),
+  new Dummy(scene, physics, new THREE.Vector3(-20, 3.2, 10)),
+  new Dummy(scene, physics, new THREE.Vector3(26, 4, -5)),
+  new Dummy(scene, physics, new THREE.Vector3(0, 1, -20)),
 ];
 
-const weapons = new Weapons(camera, level, dummies, audio);
+const weapons = new Weapons(camera, level, dummies, audio, tracers);
 
 const hud = new HUD(player, weapons, {
   onPlayClick: () => {
@@ -78,7 +83,8 @@ function animate() {
     footstepTimer = 0;
   }
 
-  for (const dummy of dummies) dummy.update(delta, player, level, audio);
+  for (const dummy of dummies) dummy.update(delta, player, level, audio, tracers);
+  tracers.update(delta);
 
   hud.update(timeLeft, timeLeft === 0);
 

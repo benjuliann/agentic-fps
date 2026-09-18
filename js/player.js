@@ -33,6 +33,7 @@ export class Player {
     this.camera.rotation.order = 'YXZ';
 
     this.keys = { forward: false, back: false, left: false, right: false, jump: false, sprint: false };
+    this.listeners = { damage: [] };
 
     this.body = new CANNON.Body({
       mass: 70,
@@ -58,9 +59,18 @@ export class Player {
     return jumped;
   }
 
+  on(event, callback) {
+    this.listeners[event].push(callback);
+  }
+
+  _emit(event, data) {
+    for (const callback of this.listeners[event]) callback(data);
+  }
+
   takeDamage(amount) {
     if (this.health <= 0) return;
     this.health = Math.max(0, this.health - amount);
+    this._emit('damage', { amount });
     if (this.health === 0) {
       this.deaths++;
       this.respawn();

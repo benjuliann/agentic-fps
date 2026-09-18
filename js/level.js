@@ -288,6 +288,25 @@ export class Level {
     return new THREE.Vector3((fallback.x[0] + fallback.x[1]) / 2, fallback.y + 1, (fallback.z[0] + fallback.z[1]) / 2);
   }
 
+  // The floor area a point's x/z falls within, preferring the smallest
+  // matching area since HVAC_DECK/CRANE_DECK sit inside MAIN_ROOF's x/z
+  // footprint (they're small islands raised above the main roof, not
+  // disjoint rectangles) - used by dummy wander to keep a dummy bounded to
+  // whichever area it's currently standing on.
+  getAreaAt(x, z) {
+    let best = null;
+    let bestSize = Infinity;
+    for (const area of this.areas) {
+      if (x < area.x[0] || x > area.x[1] || z < area.z[0] || z > area.z[1]) continue;
+      const size = (area.x[1] - area.x[0]) * (area.z[1] - area.z[0]);
+      if (size < bestSize) {
+        best = area;
+        bestSize = size;
+      }
+    }
+    return best || this.areas[0];
+  }
+
   // A cluster of a few round vent stacks, like the chimney groups in the
   // reference rooftop image.
   _buildChimneyCluster(center) {

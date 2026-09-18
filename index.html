@@ -98,6 +98,17 @@
     #crosshair.hit {
       background: #ff4136;
     }
+    #damage-vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0) 40%, rgba(220, 0, 0, 0.6) 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease-out;
+    }
+    #damage-vignette.flash {
+      opacity: 1;
+      transition: none;
+    }
     #overlay {
       position: fixed;
       inset: 0;
@@ -151,6 +162,7 @@
     <div id="timer">Time: 1:30</div>
     <div id="kd">Kills: 0  Deaths: 0  K/D: 0.00</div>
     <div id="crosshair" hidden></div>
+    <div id="damage-vignette"></div>
     <div id="results" hidden></div>
   </div>
   <div id="overlay">
