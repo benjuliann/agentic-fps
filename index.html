@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FPS1</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: monospace;
+    }
+    canvas {
+      display: block;
+    }
+    #hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      color: #fff;
+      text-shadow: 0 0 3px #000;
+    }
+    #health {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      font-size: 20px;
+    }
+    #ammo {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      font-size: 20px;
+      text-align: right;
+    }
+    .bar {
+      width: 160px;
+      height: 8px;
+      margin-top: 4px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+    #ammo .bar {
+      margin-left: auto;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+    }
+    #health-bar-fill {
+      background: #2ecc40;
+    }
+    #ammo-bar-fill {
+      background: #ffcc00;
+    }
+    #timer {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+    }
+    #kd {
+      position: fixed;
+      top: 46px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+    }
+    #results {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px 32px;
+      font-size: 24px;
+      text-align: center;
+      border-radius: 4px;
+      white-space: pre-line;
+    }
+    #results[hidden] {
+      display: none;
+    }
+    #crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 -3px;
+      border-radius: 50%;
+      background: #fff;
+      mix-blend-mode: difference;
+    }
+    #crosshair.hit {
+      background: #ff4136;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    #overlay[hidden] {
+      display: none;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="hud">
+    <div id="health">
+      <span id="health-text">Health: 100</span>
+      <div class="bar"><div id="health-bar-fill" class="bar-fill"></div></div>
+    </div>
+    <div id="ammo">
+      <span id="ammo-text">Ammo: 12 / 12</span>
+      <div class="bar"><div id="ammo-bar-fill" class="bar-fill"></div></div>
+    </div>
+    <div id="timer">Time: 1:30</div>
+    <div id="kd">Kills: 0  Deaths: 0  K/D: 0.00</div>
+    <div id="crosshair" hidden></div>
+    <div id="results" hidden></div>
+  </div>
+  <div id="overlay">Click to play</div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
